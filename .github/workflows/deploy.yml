@@ -4,29 +4,20 @@ on:
     tags:
       - '*dev*'
       - '*release*'
-
 permissions:
   id-token: write
   contents: read
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Determine deployment environment
-        id: set-env
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          if [[ $TAG == *-dev ]]; then
-            echo "environment=dev" >> $GITHUB_OUTPUT
-          elif [[ $TAG == *-release ]]; then
-            echo "environment=testnet" >> $GITHUB_OUTPUT
-          else
-            echo "No matching environment found"
-            exit 1
-          fi
+  dev-deploy:
+    if: contains(github.ref, '-dev')
+    uses: ./.github/workflows/common.yml
+    with:
+      environment: dev
+    secrets: inherit
 
-      - uses: ./.github/workflows/common.yml
-        with:
-          environment: ${{ steps.set-env.outputs.environment }}
-        secrets: inherit
+  release-deploy:
+    if: contains(github.ref, '-release')
+    uses: ./.github/workflows/common.yml
+    with:
+      environment: testnet
+    secrets: inherit
