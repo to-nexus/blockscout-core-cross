@@ -12,6 +12,7 @@ defmodule BlockScoutWeb.API.V2.StatsController do
   alias Explorer.Chain.Supply.RSK
   alias Explorer.Chain.Transaction.History.TransactionStats
   alias Explorer.Counters.AverageBlockTime
+  alias Explorer.Counters.HourlyTps
   alias Plug.Conn
   alias Timex.Duration
 
@@ -31,6 +32,8 @@ defmodule BlockScoutWeb.API.V2.StatsController do
     secondary_coin_exchange_rate = Market.get_secondary_coin_exchange_rate()
 
     transaction_stats = Helper.get_transaction_stats()
+
+    tps_value = HourlyTps.fetch_count([])
 
     gas_prices =
       case GasPriceOracle.get_gas_prices() do
@@ -57,33 +60,46 @@ defmodule BlockScoutWeb.API.V2.StatsController do
       end
 
     gas_price = Application.get_env(:block_scout_web, :gas_price)
+    ## CROSS ADD
+    response = %{
+      "total_blocks" => BlockCache.estimated_count() |> to_string(),
+      "total_addresses" => @api_true |> Counters.address_estimated_count() |> to_string(),
+      "total_transactions" => TransactionCache.estimated_count() |> to_string(),
+      "average_block_time" => AverageBlockTime.average_block_time() |> Duration.to_milliseconds(),
+      "coin_image" => exchange_rate.image_url,
+      "secondary_coin_image" => secondary_coin_exchange_rate.image_url,
+      "coin_price" => exchange_rate.usd_value,
+      "coin_price_change_percentage" => coin_price_change,
+      "secondary_coin_price" => secondary_coin_exchange_rate.usd_value,
+      "total_gas_used" => GasUsage.total() |> to_string(),
+      "transactions_today" => Enum.at(transaction_stats, 0).number_of_transactions |> to_string(),
+      "gas_used_today" => Enum.at(transaction_stats, 0).gas_used,
+      "gas_prices" => gas_prices,
+      "gas_prices_update_in" => GasPriceOracle.update_in(),
+      "gas_price_updated_at" => GasPriceOracle.get_updated_at(),
+      "static_gas_price" => gas_price,
+      "market_cap" => Helper.market_cap(market_cap_type, exchange_rate),
+      "tvl" => exchange_rate.tvl_usd,
+      "network_utilization_percentage" => network_utilization_percentage(),
+      "hourly_tps" =>
+        case tps_value do
+          nil -> "0"
+          value ->
+            ## Issue: 소수점 반환 시 문자열 치환 할 때 정수로 변환되는 문제
+            ## 아래 방식으로 해결
+            value
+            |> Decimal.to_float()
+            |> Float.to_string(decimals: 2)
+        end
+    }
 
     json(
       conn,
-      %{
-        "total_blocks" => BlockCache.estimated_count() |> to_string(),
-        "total_addresses" => @api_true |> Counters.address_estimated_count() |> to_string(),
-        "total_transactions" => TransactionCache.estimated_count() |> to_string(),
-        "average_block_time" => AverageBlockTime.average_block_time() |> Duration.to_milliseconds(),
-        "coin_image" => exchange_rate.image_url,
-        "secondary_coin_image" => secondary_coin_exchange_rate.image_url,
-        "coin_price" => exchange_rate.usd_value,
-        "coin_price_change_percentage" => coin_price_change,
-        "secondary_coin_price" => secondary_coin_exchange_rate.usd_value,
-        "total_gas_used" => GasUsage.total() |> to_string(),
-        "transactions_today" => Enum.at(transaction_stats, 0).number_of_transactions |> to_string(),
-        "gas_used_today" => Enum.at(transaction_stats, 0).gas_used,
-        "gas_prices" => gas_prices,
-        "gas_prices_update_in" => GasPriceOracle.update_in(),
-        "gas_price_updated_at" => GasPriceOracle.get_updated_at(),
-        "static_gas_price" => gas_price,
-        "market_cap" => Helper.market_cap(market_cap_type, exchange_rate),
-        "tvl" => exchange_rate.tvl_usd,
-        "network_utilization_percentage" => network_utilization_percentage()
-      }
+      response
       |> add_chain_type_fields()
       |> backward_compatibility(conn)
     )
+
   end
 
   defp network_utilization_percentage do

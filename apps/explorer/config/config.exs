@@ -116,6 +116,11 @@ config :explorer, Explorer.Counters.BlockPriorityFeeCounter,
   enabled: true,
   enable_consolidation: true
 
+config :explorer, Explorer.Counters.HourlyTps, ## CROSS ADD
+  enabled: ConfigHelper.parse_bool_env_var("HOURLY_TPS_ENABLED", "true"),
+  update_interval_in_milliseconds: ConfigHelper.parse_time_env_var("CACHE_TPS_STATS_PERIOD", "1h"),
+  enable_consolidation: true
+
 config :explorer, Explorer.TokenInstanceOwnerAddressMigration.Supervisor, enabled: true
 
 config :explorer, Explorer.Migrator.TransactionsDenormalization, enabled: true
