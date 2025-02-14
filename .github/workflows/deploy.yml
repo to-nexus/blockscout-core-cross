@@ -1,0 +1,27 @@
+name: trigger
+
+on:
+  push:
+    branches: [dev, testnet, master]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  dev-deploy:
+    if: github.ref == 'refs/heads/dev'
+    uses: ./.github/workflows/common.yml 
+    secrets: inherit
+    with:
+      environment: dev
+  # testnet-deploy:
+  #   if: github.ref == 'refs/heads/master'
+  #   uses: ./.github/workflows/common.yml 
+  #   with:
+  #     environment: testnet
+  # mainnet-deploy:
+  #   if: github.ref == 'refs/heads/master'
+  #   uses: ./.github/workflows/common.yml 
+  #   with:
+  #     environment: mainnet

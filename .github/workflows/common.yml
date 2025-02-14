@@ -1,0 +1,110 @@
+name: build-image
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+env:
+  RELEASE_VERSION: 6.10.1 ## BlockScout Release version
+
+jobs:
+  build_image:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      OTP_VERSION: ${{ vars.OTP_VERSION }}
+      ELIXIR_VERSION: ${{ vars.ELIXIR_VERSION }}
+      IMAGE_TAG: ${{ github.event.repository.name }}-${{ inputs.environment }}
+    outputs:
+      IMAGE_TAG: ${{ env.IMAGE_TAG }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Tagging
+        id: tagging
+        run: |
+          echo "GIT_SHA=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+      # - name: Debug environment
+      #   run: |
+      #     echo "Environment is ${{ inputs.environment }}"
+      #     echo "Environment: ${{ inputs.environment }}"
+      #     echo "AWS Region exists: ${{ secrets.AWS_REGION != '' }}"
+      #     echo "Account ID exists: ${{ secrets.ACCOUNT_ID != '' }}"
+      #     echo "OIDC Role exists: ${{ secrets.OIDC_ROLE_ARN != '' }}"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_ID }}:role/${{ secrets.OIDC_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+          
+      - name: Setup Dcocker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build ALL
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-${{ steps.tagging.outputs.GIT_SHA }},${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-latest
+          platforms: linux/amd64
+          build-args: |
+            RELEASE_VERSION=${{ env.RELEASE_VERSION }}
+
+      - name: Build API
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-${{ steps.tagging.outputs.GIT_SHA }}-api,${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-api-latest
+          platforms: linux/amd64
+          build-args: |
+            DISABLE_INDEXER=true
+            RELEASE_VERSION=${{ env.RELEASE_VERSION }}
+
+      - name: Build Indexer 
+        uses: docker/build-push-action@v6
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-${{ steps.tagging.outputs.GIT_SHA }}-indexer,${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-indexer-latest
+          platforms: linux/amd64
+          build-args: |
+            DISABLE_API=true 
+            RELEASE_VERSION=${{ env.RELEASE_VERSION }}
+
+      # - name: Send release announcement to Slack workflow
+      #   id: slack
+      #   uses: slackapi/slack-github-action@v1.24.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "release-version": "${{ env.RELEASE_VERSION }}",
+      #         "release-link": "https://github.com/blockscout/blockscout/releases/tag/v${{ env.RELEASE_VERSION }}"
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
