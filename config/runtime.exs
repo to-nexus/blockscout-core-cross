@@ -362,6 +362,11 @@ config :explorer, Explorer.Counters.Transactions24hStats,
   cache_period: ConfigHelper.parse_time_env_var("CACHE_TRANSACTIONS_24H_STATS_PERIOD", "1h"),
   enable_consolidation: true
 
+config :explorer, Explorer.Counters.HourlyTps, ## CROSS ADD
+  enabled: ConfigHelper.parse_bool_env_var("HOURLY_TPS_ENABLED", "true"),
+  cache_period: ConfigHelper.parse_time_env_var("CACHE_TPS_STATS_PERIOD", "1h"),
+  enable_consolidation: true
+
 config :explorer, Explorer.Counters.FreshPendingTransactionsCounter,
   enabled: true,
   cache_period: ConfigHelper.parse_time_env_var("CACHE_FRESH_PENDING_TRANSACTIONS_COUNTER_PERIOD", "5m"),
