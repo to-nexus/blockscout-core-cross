@@ -18,7 +18,7 @@ jobs:
     env:
       OTP_VERSION: ${{ vars.OTP_VERSION }}
       ELIXIR_VERSION: ${{ vars.ELIXIR_VERSION }}
-      IMAGE_TAG: ${{ github.event.repository.name }}-${{ inputs.environment }}
+      IMAGE_TAG: ${{ github.ref_name }}
     outputs:
       IMAGE_TAG: ${{ env.IMAGE_TAG }}
     steps:
@@ -53,7 +53,7 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-${{ steps.tagging.outputs.GIT_SHA }}-api,${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-api-latest
+          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-api,${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:api-latest
           platforms: linux/amd64
           build-args: |
             DISABLE_INDEXER=true
@@ -69,7 +69,7 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-${{ steps.tagging.outputs.GIT_SHA }}-indexer,${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-indexer-latest
+          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ env.IMAGE_TAG }}-indexer,${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:indexer-latest
           platforms: linux/amd64
           build-args: |
             DISABLE_API=true 
