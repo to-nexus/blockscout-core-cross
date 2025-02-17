@@ -1,0 +1,23 @@
+name: trigger
+on:
+  push:
+    tags:
+      - '*dev*'
+      - '*release*'
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  dev-deploy:
+    if: contains(github.ref, '-dev')
+    uses: ./.github/workflows/common.yml
+    with:
+      environment: dev
+    secrets: inherit
+
+  release-deploy:
+    if: contains(github.ref, '-release')
+    uses: ./.github/workflows/common.yml
+    with:
+      environment: testnet
+    secrets: inherit

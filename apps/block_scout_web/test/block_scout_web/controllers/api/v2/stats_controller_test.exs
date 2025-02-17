@@ -33,6 +33,7 @@ defmodule BlockScoutWeb.API.V2.StatsControllerTest do
       assert Map.has_key?(response, "static_gas_price")
       assert Map.has_key?(response, "market_cap")
       assert Map.has_key?(response, "network_utilization_percentage")
+      assert Map.has_key?(response, "hourly_tps")
     end
   end
 
