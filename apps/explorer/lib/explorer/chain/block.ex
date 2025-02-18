@@ -149,6 +149,7 @@ defmodule Explorer.Chain.Block.Schema do
         field(:refetch_needed, :boolean)
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
+        field(:confirmed_validators, :integer)  ## CROSS ADD
 
         timestamps()
 
@@ -565,8 +566,34 @@ defmodule Explorer.Chain.Block do
         set: [refetch_needed: true, updated_at: Timex.now()]
       )
 
+    # 업데이트된 각 블록에 대해 validators 업데이트
+    Enum.each(updated_numbers, fn number ->
+      block = Repo.get_by(Block, number: number)
+      update_block_with_validators(block)
+    end)
+
     MissingRangesManipulator.add_ranges_by_block_numbers(updated_numbers)
   end
 
   def set_refetch_needed(block_number), do: set_refetch_needed([block_number])
+
+  def fetch_validators(block_number) do
+    params = [
+      %{
+        id: 1,
+        method: "istanbul_getValidators",
+        params: [Integer.to_string(block_number, 16)]
+      }
+    ]
+
+    EthereumJSONRPC.json_rpc(params)
+  end
+
+  def update_block_with_validators(%__MODULE__{number: number} = block) do
+    with {:ok, validators} <- fetch_validators(number) do
+      block
+      |> changeset(%{confirmed_validators: length(validators.result)})
+      |> Repo.update()
+    end
+  end
 end
