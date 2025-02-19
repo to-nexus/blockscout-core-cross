@@ -39,7 +39,7 @@ defmodule BlockScoutWeb.API.V2.BlockView do
       "timestamp" => block.timestamp,
       "transaction_count" => count_transactions(block),
       "miner" => Helper.address_with_info(nil, block.miner, block.miner_hash, false),
-      "confirmed_validator" => block.confirmed_validator,
+      # "confirmed_validator" => block.confirmed_validator,
       "size" => block.size,
       "hash" => block.hash,
       "parent_hash" => block.parent_hash,

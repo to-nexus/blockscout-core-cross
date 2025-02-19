@@ -149,7 +149,7 @@ defmodule Explorer.Chain.Block.Schema do
         field(:refetch_needed, :boolean)
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
-        field(:confirmed_validator, :integer, null: true)  ## CROSS ADD
+        # field(:confirmed_validator, :integer, null: true)  ## CROSS ADD
 
         timestamps()
 
@@ -589,11 +589,11 @@ defmodule Explorer.Chain.Block do
     EthereumJSONRPC.json_rpc(params)
   end
 
-  def update_block_with_validators(%__MODULE__{number: number} = block) do
-    with {:ok, validators} <- fetch_validators(number) do
-      block
-      |> changeset(%{confirmed_validator: length(validators.result)})
-      |> Repo.update()
-    end
-  end
+  # def update_block_with_validators(%__MODULE__{number: number} = block) do
+  #   with {:ok, validators} <- fetch_validators(number) do
+  #     block
+  #     |> changeset(%{confirmed_validator: length(validators.result)})
+  #     |> Repo.update()
+  #   end
+  # end
 end
