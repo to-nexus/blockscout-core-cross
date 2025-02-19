@@ -149,7 +149,7 @@ defmodule Explorer.Chain.Block.Schema do
         field(:refetch_needed, :boolean)
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
-        field(:confirmed_validators, :integer)  ## CROSS ADD
+        field(:confirmed_validator, :integer)  ## CROSS ADD
 
         timestamps()
 
@@ -592,7 +592,7 @@ defmodule Explorer.Chain.Block do
   def update_block_with_validators(%__MODULE__{number: number} = block) do
     with {:ok, validators} <- fetch_validators(number) do
       block
-      |> changeset(%{confirmed_validators: length(validators.result)})
+      |> changeset(%{confirmed_validator: length(validators.result)})
       |> Repo.update()
     end
   end
