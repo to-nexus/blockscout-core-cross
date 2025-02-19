@@ -567,10 +567,10 @@ defmodule Explorer.Chain.Block do
       )
 
     # 업데이트된 각 블록에 대해 validators 업데이트
-    Enum.each(updated_numbers, fn number ->
-      block = Repo.get_by(Block, number: number)
-      update_block_with_validators(block)
-    end)
+    # Enum.each(updated_numbers, fn number ->
+    #   block = Repo.get_by(Block, number: number)
+    #   update_block_with_validators(block)
+    # end)
 
     MissingRangesManipulator.add_ranges_by_block_numbers(updated_numbers)
   end
