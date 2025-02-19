@@ -149,7 +149,7 @@ defmodule Explorer.Chain.Block.Schema do
         field(:refetch_needed, :boolean)
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
-        field(:confirmed_validator, :integer)  ## CROSS ADD
+        field(:confirmed_validator, :integer, null: true)  ## CROSS ADD
 
         timestamps()
 
