@@ -77,7 +77,7 @@ defmodule Explorer.Chain.Block.Confirmed_Validator_Count do
   @doc """
   Updates validator counts for multiple blocks efficiently
   """
-  def update_confirmed_validator_count(block_numbers) when is_list(block_numbers) do
+  def update_confirmed_validator_counts(block_numbers) when is_list(block_numbers) do
     Logger.info("Starting batch update of validator counts for #{length(block_numbers)} blocks")
     # block_numbers
     # |> Enum.chunk_every(50)  # Process in batches to avoid overloading
@@ -99,7 +99,7 @@ defmodule Explorer.Chain.Block.Confirmed_Validator_Count do
         |> Repo.all()
 
       Enum.each(blocks, fn block ->
-        case update_validator_count(block) do
+        case update_confirmed_validator_count(block) do
           {:ok, _} ->
             Logger.debug("Batch #{batch_num}: Successfully updated block ##{block.number}")
           {:error, reason} ->
