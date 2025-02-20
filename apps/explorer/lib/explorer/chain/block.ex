@@ -568,7 +568,7 @@ defmodule Explorer.Chain.Block do
 
     ## Update validator counts in re-fetch
     Task.start(fn ->
-      Explorer.Chain.Block.ValidatorOperations.update_validator_counts(updated_numbers)
+      Explorer.Chain.Block.ConfirmedValidatorCount.update_confirmed_validator_counts(updated_numbers)
     end)
 
     MissingRangesManipulator.add_ranges_by_block_numbers(updated_numbers)
@@ -576,26 +576,13 @@ defmodule Explorer.Chain.Block do
 
   def set_refetch_needed(block_number), do: set_refetch_needed([block_number])
 
-  def fetch_validators(block_number) do
-    params = [
-      %{
-        id: 1,
-        method: "istanbul_getValidators",
-        params: [Integer.to_string(block_number, 16)]
-      }
-    ]
-
-    EthereumJSONRPC.json_rpc(params)
-  end
-
   @doc """
   By CROSS
   Update Confirmed Validators
   """
-  def validator_count_changeset(%__MODULE__{} = block, attrs) do
+  def confirmed_validator_count_changeset(%__MODULE__{} = block, attrs) do
     block
-    |> cast(attrs, [:validator_count])
-    |> validate_number(:validator_count, greater_than_or_equal_to: 0)
+    |> cast(attrs, [:confirmed_validator_count])
+    |> validate_number(:confirmed_validator_count, greater_than_or_equal_to: 0)
   end
-
 end

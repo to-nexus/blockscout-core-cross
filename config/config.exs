@@ -39,13 +39,8 @@ config :logger,
     {LoggerFileBackend, :block_import_timings},
     {LoggerFileBackend, :account},
     {LoggerFileBackend, :api_v2},
-    {LoggerFileBackend, :console},
     LoggerJSON
   ]
-
-config :logger, :console,
-  format: "$time $metadata[$level] $message\n",
-  level: :debug
 
 config :logger_json, :backend,
   metadata:
