@@ -6,7 +6,7 @@ config :logger, :console, level: :info
 
 config :logger_json, :backend, level: :info
 
-config :logger :explorer,
+config :logger, :explorer,
   level: :info
 
 config :logger, :ecto,
