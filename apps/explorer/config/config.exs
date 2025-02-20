@@ -165,7 +165,7 @@ config :explorer, Explorer.Chain.BridgedToken, enabled: ConfigHelper.parse_bool_
 config :explorer, Explorer.Chain.Mud, enabled: ConfigHelper.parse_bool_env_var("MUD_INDEXER_ENABLED")
 
 config :logger, :console,
-  level: :debug
+  level: :debug,
   format: "$dateT$time $metadata[$level] $message\n",
 
 config :spandex_ecto, SpandexEcto.EctoLogger,
