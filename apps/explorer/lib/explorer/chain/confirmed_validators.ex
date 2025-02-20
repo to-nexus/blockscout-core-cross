@@ -28,15 +28,15 @@ defmodule Explorer.Chain.Block.Confirmed_Validator_Count do
       # _ -> {:error, :invalid_response}
       {:ok, %{result: validators}} when is_list(validators) ->
         count = length(validators)
-        Logger.info("Block ##{block_number} validator count: #{count}")
+        Logger.info(fn -> "Block ##{block_number} validator count: #{count}" end)
         {:ok, count}
 
       {:error, reason} = error ->
-        Logger.error("Failed to fetch validators for block ##{block_number}: #{inspect(reason)}")
+        Logger.error(fn -> "Failed to fetch validators for block ##{block_number}: #{inspect(reason)}" end)
         error
 
       other ->
-        Logger.error("Unexpected response for block ##{block_number}: #{inspect(other)}")
+        Logger.error(fn -> "Unexpected response for block ##{block_number}: #{inspect(other)}" end)
         {:error, :invalid_response}
     end
   end
@@ -45,7 +45,7 @@ defmodule Explorer.Chain.Block.Confirmed_Validator_Count do
   Updates validator count for a single block
   """
   def update_confirmed_validator_count(%Block{} = block) do
-    Logger.info("Updating validator count for block ##{block.number}")
+    Logger.info(fn -> "Updating validator count for block ##{block.number}" end)
 
     # with {:ok, confirmed_validator_count} <- fetch_confirmed_validator_count(block.number) do
     #   block
@@ -60,16 +60,16 @@ defmodule Explorer.Chain.Block.Confirmed_Validator_Count do
 
         case result do
           {:ok, updated_block} ->
-            Logger.info("Successfully updated validator count for block ##{block.number}: #{validator_count}")
+            Logger.info(fn -> "Successfully updated validator count for block ##{block.number}: #{validator_count}" end)
             {:ok, updated_block}
 
           {:error, changeset} = error ->
-            Logger.error("Failed to update validator count for block ##{block.number}: #{inspect(changeset.errors)}")
+            Logger.error(fn -> "Failed to update validator count for block ##{block.number}: #{inspect(changeset.errors)}" end)
             error
         end
 
       {:error, _} = error ->
-        Logger.error("Failed in validator fetch for block ##{block.number}")
+        Logger.error(fn -> "Failed in validator fetch for block ##{block.number}" end)
         error
     end
   end
@@ -78,7 +78,7 @@ defmodule Explorer.Chain.Block.Confirmed_Validator_Count do
   Updates validator counts for multiple blocks efficiently
   """
   def update_confirmed_validator_counts(block_numbers) when is_list(block_numbers) do
-    Logger.info("Starting batch update of validator counts for #{length(block_numbers)} blocks")
+    Logger.info(fn -> "Starting batch update of validator counts for #{length(block_numbers)} blocks" end)
     # block_numbers
     # |> Enum.chunk_every(50)  # Process in batches to avoid overloading
     # |> Enum.each(fn chunk ->
@@ -93,7 +93,7 @@ defmodule Explorer.Chain.Block.Confirmed_Validator_Count do
     |> Enum.chunk_every(50)
     |> Enum.with_index(1)
     |> Enum.each(fn {chunk, batch_num} ->
-      Logger.info("Processing batch #{batch_num} with #{length(chunk)} blocks")
+      Logger.info(fn -> "Processing batch #{batch_num} with #{length(chunk)} blocks" end)
 
       blocks = from(b in Block, where: b.number in ^chunk)
         |> Repo.all()
@@ -101,15 +101,15 @@ defmodule Explorer.Chain.Block.Confirmed_Validator_Count do
       Enum.each(blocks, fn block ->
         case update_confirmed_validator_count(block) do
           {:ok, _} ->
-            Logger.debug("Batch #{batch_num}: Successfully updated block ##{block.number}")
+            Logger.debug(fn -> "Batch #{batch_num}: Successfully updated block ##{block.number}" end)
           {:error, reason} ->
-            Logger.warn("Batch #{batch_num}: Failed to update block ##{block.number}: #{inspect(reason)}")
+            Logger.warn(fn -> "Batch #{batch_num}: Failed to update block ##{block.number}: #{inspect(reason)}" end)
         end
       end)
 
-      Logger.info("Completed batch #{batch_num}")
+      Logger.info(fn -> "Completed batch #{batch_num}" end)
     end)
 
-    Logger.info("Completed all validator count updates")
+    Logger.info(fn -> "Completed all validator count updates" end)
   end
 end
