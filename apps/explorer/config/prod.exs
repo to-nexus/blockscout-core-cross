@@ -43,14 +43,8 @@ end
 config :explorer, Explorer.Tracer, env: "production", disabled?: true
 
 config :logger, :console,
-  format: "$dateT$time $metadata[$level] $message\n",
-  metadata:
-    ~w(application fetcher request_id first_block_number last_block_number missing_block_range_count missing_block_count
-      block_number step count error_count shrunk import_id transaction_id)a,
-  metadata_filter: [application: :explorer]
-  # level: :info
-  # path: Path.absname("logs/prod/explorer.log"),
-  # rotate: %{max_bytes: 52_428_800, keep: 19}
+  level: :debug,
+  format: "$dateT$time $metadata[$level] $message\n"
 
 config :logger, :reading_token_functions,
   level: :debug,
