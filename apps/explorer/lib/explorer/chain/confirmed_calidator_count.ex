@@ -52,7 +52,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
       case fetch_confirmed_validator_count(block.number) do
         {:ok, validator_count} ->
           case block
-               |> Block.validator_count_changeset(%{confirmed_validator_count: validator_count})
+               |> Block.confirmed_validator_count_changeset(%{confirmed_validator_count: validator_count})
                |> Repo.update() do
             {:ok, updated_block} ->
               log_info("Successfully updated validator count for block ##{block.number}: #{validator_count}")
