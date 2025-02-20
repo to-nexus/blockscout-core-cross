@@ -165,12 +165,8 @@ config :explorer, Explorer.Chain.BridgedToken, enabled: ConfigHelper.parse_bool_
 config :explorer, Explorer.Chain.Mud, enabled: ConfigHelper.parse_bool_env_var("MUD_INDEXER_ENABLED")
 
 config :logger, :console,
-  # keep synced with `config/config.exs`
+  level: :debug
   format: "$dateT$time $metadata[$level] $message\n",
-  metadata:
-    ~w(application fetcher request_id first_block_number last_block_number missing_block_range_count missing_block_count
-       block_number step count error_count shrunk import_id transaction_id)a,
-  metadata_filter: [application: :explorer]
 
 config :spandex_ecto, SpandexEcto.EctoLogger,
   service: :ecto,

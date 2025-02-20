@@ -37,9 +37,9 @@ end
 
 config :explorer, Explorer.Tracer, env: "dev", disabled?: true
 
-config :logger, :explorer,
-  level: :debug,
-  path: Path.absname("logs/dev/explorer.log")
+config :logger, :console,
+  level: :info
+  format: "$dateT$time $metadata[$level] $message\n",
 
 config :logger, :reading_token_functions,
   level: :debug,
