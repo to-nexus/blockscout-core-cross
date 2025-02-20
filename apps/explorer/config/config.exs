@@ -166,7 +166,7 @@ config :explorer, Explorer.Chain.Mud, enabled: ConfigHelper.parse_bool_env_var("
 
 config :logger, :console,
   level: :debug,
-  format: "$dateT$time $metadata[$level] $message\n",
+  format: "$dateT$time $metadata[$level] $message\n"
 
 config :spandex_ecto, SpandexEcto.EctoLogger,
   service: :ecto,
