@@ -3,10 +3,10 @@ defmodule Explorer.Repo.Migrations.AddValidatorCountToBlocks do
 
   def change do
     alter table(:blocks) do
-      add :validator_counts, :integer
+      add :confirmed_validator_count, :integer
     end
 
     # Optional: Add an index if you plan to query by validator_count
-    create index(:blocks, [:validator_count])
+    create index(:blocks, [:confirmed_validator_count])
   end
 end
