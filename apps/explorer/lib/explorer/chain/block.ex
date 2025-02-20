@@ -149,7 +149,7 @@ defmodule Explorer.Chain.Block.Schema do
         field(:refetch_needed, :boolean)
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
-        field(:confirmed_validators, :integer)  ## CROSS ADD
+        field(:confirmed_validator_count, :integer)  ## CROSS ADD
 
         timestamps()
 
@@ -195,7 +195,7 @@ defmodule Explorer.Chain.Block do
   alias Explorer.Repo
   alias Explorer.Utility.MissingRangesManipulator
 
-  @optional_attrs ~w(size refetch_needed total_difficulty difficulty base_fee_per_gas confirmed_validators)a
+  @optional_attrs ~w(size refetch_needed total_difficulty difficulty base_fee_per_gas confirmed_validator_count)a
 
   @chain_type_optional_attrs (case @chain_type do
                                 :rsk ->
