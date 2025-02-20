@@ -2,9 +2,12 @@ import Config
 
 # Do not print debug messages in production
 
-config :logger, :console, level: :debug
+config :logger, :console, level: :info
 
 config :logger_json, :backend, level: :info
+
+config:logger :explorer,
+  level: :info
 
 config :logger, :ecto,
   level: :info,
