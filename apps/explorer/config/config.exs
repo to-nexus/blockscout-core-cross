@@ -164,7 +164,7 @@ config :explorer, Explorer.Chain.BridgedToken, enabled: ConfigHelper.parse_bool_
 
 config :explorer, Explorer.Chain.Mud, enabled: ConfigHelper.parse_bool_env_var("MUD_INDEXER_ENABLED")
 
-config :logger, :explorer,
+config :logger, :console,
   # keep synced with `config/config.exs`
   format: "$dateT$time $metadata[$level] $message\n",
   metadata:

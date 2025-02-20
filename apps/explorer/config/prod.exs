@@ -42,7 +42,7 @@ end
 
 config :explorer, Explorer.Tracer, env: "production", disabled?: true
 
-config :logger, :explorer,
+config :logger, :console,
   level: :info,
   path: Path.absname("logs/prod/explorer.log"),
   rotate: %{max_bytes: 52_428_800, keep: 19}
