@@ -3,7 +3,6 @@ defmodule Explorer.Repo.Migrations.AddConfirmedValidatorToBlocks do
 
   def change do
     alter table(:blocks) do
-      add :confirmed_validator, :integer, null: true
-    end
+      add :confirmed_validators, :integer
   end
 end

@@ -149,7 +149,7 @@ defmodule Explorer.Chain.Block.Schema do
         field(:refetch_needed, :boolean)
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
-        # field(:confirmed_validator, :integer, null: true)  ## CROSS ADD
+        field(:confirmed_validators, :integer)  ## CROSS ADD
 
         timestamps()
 
@@ -195,7 +195,7 @@ defmodule Explorer.Chain.Block do
   alias Explorer.Repo
   alias Explorer.Utility.MissingRangesManipulator
 
-  @optional_attrs ~w(size refetch_needed total_difficulty difficulty base_fee_per_gas)a
+  @optional_attrs ~w(size refetch_needed total_difficulty difficulty base_fee_per_gas confirmed_validators)a
 
   @chain_type_optional_attrs (case @chain_type do
                                 :rsk ->
@@ -566,11 +566,10 @@ defmodule Explorer.Chain.Block do
         set: [refetch_needed: true, updated_at: Timex.now()]
       )
 
-    # 업데이트된 각 블록에 대해 validators 업데이트
-    # Enum.each(updated_numbers, fn number ->
-    #   block = Repo.get_by(Block, number: number)
-    #   update_block_with_validators(block)
-    # end)
+    ## Update validator counts in re-fetch
+    Task.start(fn ->
+      Explorer.Chain.Block.ValidatorOperations.update_validator_counts(updated_numbers)
+    end)
 
     MissingRangesManipulator.add_ranges_by_block_numbers(updated_numbers)
   end
@@ -589,11 +588,14 @@ defmodule Explorer.Chain.Block do
     EthereumJSONRPC.json_rpc(params)
   end
 
-  # def update_block_with_validators(%__MODULE__{number: number} = block) do
-  #   with {:ok, validators} <- fetch_validators(number) do
-  #     block
-  #     |> changeset(%{confirmed_validator: length(validators.result)})
-  #     |> Repo.update()
-  #   end
-  # end
+  @doc """
+  By CROSS
+  Update Confirmed Validators
+  """
+  def validator_count_changeset(%__MODULE__{} = block, attrs) do
+    block
+    |> cast(attrs, [:validator_count])
+    |> validate_number(:validator_count, greater_than_or_equal_to: 0)
+  end
+
 end
