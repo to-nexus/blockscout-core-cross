@@ -242,6 +242,34 @@ defmodule Explorer.EthRPC do
         "result": "0x3b9aca00"
       }
       """
+    },
+    "istanbul_getValidators" => %{
+      action: :istanbul_get_validators,
+      notes: """
+      Returns the list of validators for the specified block.
+      """,
+      example: """
+      {"jsonrpc": "2.0","id": 0,"method": "istanbul_getValidators","params": ["0x1234"]}
+      """,
+      params: [
+        %{
+          name: "Block",
+          description: "Integer block number in hexadecimal format",
+          type: "string",
+          default: nil,
+          required: true
+        }
+      ],
+      result: """
+      {
+        "jsonrpc": "2.0",
+        "id": 0,
+        "result": [
+          "0x42eb768f2244c8811c63729a21a3569731535f06",
+          "0x7d8bf18c7ce84b3e175b339c4ca93aed1dd166f1"
+        ]
+      }
+      """
     }
   }
 
