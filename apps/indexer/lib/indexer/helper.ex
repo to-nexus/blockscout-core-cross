@@ -23,7 +23,7 @@ defmodule Indexer.Helper do
   @finite_retries_number 3
   @infinite_retries_number 100_000_000
   @block_check_interval_range_size 100
-  @block_by_number_chunk_size 50
+  @block_by_number_chunk_size 100 ## CROSS Modified 50 -> 100
 
   @doc """
   Checks whether the given Ethereum address looks correct.
