@@ -9,10 +9,11 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
   alias Explorer.Repo
   import Ecto.Query
 
-  defp log_info(message), do: Logger.info(message)
-  defp log_error(message), do: Logger.error(message)
-  defp log_debug(message), do: Logger.debug(message)
-  defp log_warn(message), do: Logger.warn(message)
+  defp log_info(message), do: IO.puts("INFO: #{message}")
+  defp log_error(message), do: IO.puts(:stderr, "ERROR: #{message}")
+  defp log_debug(message), do: IO.puts("DEBUG: #{message}")
+  defp log_warn(message), do: IO.puts("WARNING: #{message}")
+
 
   @doc """
   Fetches validator count for a given block number using istanbul_getValidators
