@@ -231,7 +231,7 @@ defmodule Indexer.Fetcher.InternalTransaction do
 
   defp fetch_block_internal_transactions_by_transactions(unique_numbers, json_rpc_named_arguments) do
     ## Excluding tx as a last..
-    # problematic_tx_hashes = Application.get_env(:indexer, __MODULE__)[:exclude_internal_tx_hash_list] || []
+    problematic_tx_hashes = Application.get_env(:indexer, __MODULE__)[:exclude_internal_tx_hash_list] || []
 
 
     Enum.reduce(unique_numbers, {:ok, []}, fn
