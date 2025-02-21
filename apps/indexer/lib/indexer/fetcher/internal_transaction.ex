@@ -28,7 +28,7 @@ defmodule Indexer.Fetcher.InternalTransaction do
 
   @behaviour BufferedTask
 
-  @default_max_batch_size 10
+  @default_max_batch_size 1 ## CROSS Modified 10 -> 1
   @default_max_concurrency 4
 
   @doc """
