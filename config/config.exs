@@ -49,13 +49,12 @@ config :logger_json, :backend,
   json_encoder: Jason,
   formatter: LoggerJSON.Formatters.BasicLogger
 
-config :logger, :explorer,
+config :logger, :console,
   # Use same format for all loggers, even though the level should only ever be `:error` for `:error` backend
   format: "$dateT$time $metadata[$level] $message\n",
   metadata:
     ~w(application fetcher request_id first_block_number last_block_number missing_block_range_count missing_block_count
        block_number step count error_count shrunk import_id transaction_id)a,
-  metadata_filter: [application: :explorer]
 
 config :logger, :ecto,
   # Use same format for all loggers, even though the level should only ever be `:error` for `:error` backend
