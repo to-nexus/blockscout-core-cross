@@ -30,7 +30,6 @@ defmodule Indexer.Fetcher.InternalTransaction do
 
   @default_max_batch_size 1 ## CROSS Modified 10 -> 1
   @default_max_concurrency 4
-
   @doc """
   Asynchronously fetches internal transactions.
 
@@ -231,31 +230,68 @@ defmodule Indexer.Fetcher.InternalTransaction do
   end
 
   defp fetch_block_internal_transactions_by_transactions(unique_numbers, json_rpc_named_arguments) do
+    ## Excluding tx as a last..
+    # problematic_tx_hashes = Application.get_env(:indexer, __MODULE__)[:exclude_internal_tx_hash_list] || []
+
+
     Enum.reduce(unique_numbers, {:ok, []}, fn
       block_number, {:ok, acc_list} ->
-        block_number
-        |> Chain.get_transactions_of_block_number()
-        |> filter_non_traceable_transactions()
-        |> Enum.map(&params(&1))
-        |> case do
-          [] ->
-            {:ok, []}
+        transactions =
+          block_number
+          |> Chain.get_transactions_of_block_number()
+          |> filter_non_traceable_transactions()
+          |> Enum.reject(fn tx -> Enum.member?(problematic_tx_hashes, to_string(tx.hash)) end)
+          |> Enum.map(&params(&1))
 
-          transactions ->
-            try do
-              EthereumJSONRPC.fetch_internal_transactions(transactions, json_rpc_named_arguments)
-            catch
-              :exit, error ->
-                {:error, error, __STACKTRACE__}
+        ## Split Txs -> One Tx
+        results = Enum.reduce(transactions, [], fn tx, tx_acc ->
+          try do
+            case EthereumJSONRPC.fetch_internal_transactions([tx], json_rpc_named_arguments) do
+              {:ok, internals} ->
+                tx_acc ++ internals
+              {:error, reason} ->
+                Logger.warn("Skipping transaction in block #{block_number}: #{inspect(reason)}")
+                tx_acc  ## if errors, skip
+              _ ->
+                tx_acc
             end
-        end
-        |> case do
-          {:ok, internal_transactions} -> {:ok, internal_transactions ++ acc_list}
-          error_or_ignore -> error_or_ignore
-        end
+          catch
+            :exit, error ->
+              Logger.warn("Exception in transaction of block #{block_number}: #{inspect(error)}")
+              tx_acc  ## if errors, skip
+          end
+        end)
+
+        {:ok, results ++ acc_list}
 
       _, error_or_ignore ->
         error_or_ignore
+
+    # Enum.reduce(unique_numbers, {:ok, []}, fn
+    #   block_number, {:ok, acc_list} ->
+    #     block_number
+    #     |> Chain.get_transactions_of_block_number()
+    #     |> filter_non_traceable_transactions()
+    #     |> Enum.map(&params(&1))
+    #     |> case do
+    #       [] ->
+    #         {:ok, []}
+
+    #       transactions ->
+    #         try do
+    #           EthereumJSONRPC.fetch_internal_transactions(transactions, json_rpc_named_arguments)
+    #         catch
+    #           :exit, error ->
+    #             {:error, error, __STACKTRACE__}
+    #         end
+    #     end
+    #     |> case do
+    #       {:ok, internal_transactions} -> {:ok, internal_transactions ++ acc_list}
+    #       error_or_ignore -> error_or_ignore
+    #     end
+
+    #   _, error_or_ignore ->
+    #     error_or_ignore
     end)
   end
 
