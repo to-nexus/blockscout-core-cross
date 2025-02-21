@@ -3,10 +3,9 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
   Manages the confirmed validator count for blocks.
   """
 
-  require Logger
-
   alias Explorer.Chain.Block
   alias Explorer.Repo
+  alias Explorer.EthRPC
   import Ecto.Query
 
   defp log_info(message), do: IO.puts("INFO: #{message}")
@@ -14,28 +13,29 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
   defp log_debug(message), do: IO.puts("DEBUG: #{message}")
   defp log_warn(message), do: IO.puts("WARNING: #{message}")
 
-
   @doc """
   Fetches validator count for a given block number using istanbul_getValidators
   """
   def fetch_confirmed_validator_count(block_number) do
     params = [
       %{
-        id: 1,
-        method: "istanbul_getValidators",
-        params: [Integer.to_string(block_number, 16)]
+        "id" => 1,
+        "jsonrpc" => "2.0",
+        "method" => "istanbul_getValidators",
+        "params" => [Integer.to_string(block_number, 16)]
       }
     ]
 
-    case EthereumJSONRPC.json_rpc(params) do
-      {:ok, %{result: validators}} when is_list(validators) ->
+    # EthRPC 모듈을 사용하여 JSON-RPC 요청 처리
+    case EthRPC.responses(params) do
+      [%{result: validators}] when is_list(validators) ->
         count = length(validators)
         log_info("Block ##{block_number} validator count: #{count}")
         {:ok, count}
 
-      {:error, reason} = error ->
+      [%{error: reason}] ->
         log_error("Failed to fetch validators for block ##{block_number}: #{inspect(reason)}")
-        error
+        {:error, reason}
 
       other ->
         log_error("Unexpected response for block ##{block_number}: #{inspect(other)}")
