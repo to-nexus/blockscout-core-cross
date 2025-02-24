@@ -709,7 +709,6 @@ defmodule Explorer.Chain.Block do
     |> cast(attrs, [:confirmed_validator_count])
     |> validate_number(:confirmed_validator_count, greater_than_or_equal_to: 0)
   end
-
 end ## End Of File
 # defp fetch_confirmed_validator_count(changeset) do
 #   case get_field(changeset, :number) do

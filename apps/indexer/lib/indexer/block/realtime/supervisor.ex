@@ -31,7 +31,9 @@ defmodule Indexer.Block.Realtime.Supervisor do
              [
                %{block_fetcher: block_fetcher, subscribe_named_arguments: block_fetcher_subscribe_named_arguments},
                [name: Indexer.Block.Realtime.Fetcher]
-             ]}
+             ]},
+            ## Add ValidatorCountFetcher
+            {Indexer.Block.ValidatorCountFetcher, subscribe_named_arguments}
           ]
 
         _ ->
@@ -41,7 +43,9 @@ defmodule Indexer.Block.Realtime.Supervisor do
              [
                %{block_fetcher: block_fetcher, subscribe_named_arguments: nil},
                [name: Indexer.Block.Realtime.Fetcher]
-             ]}
+             ]},
+            ## Add ValidatorCountFetcher
+            {Indexer.Block.ValidatorCountFetcher, subscribe_named_arguments}
           ]
       end
 
