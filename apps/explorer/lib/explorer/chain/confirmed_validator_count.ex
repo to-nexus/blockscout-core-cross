@@ -66,20 +66,24 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
         [%{error: reason}] = response ->
           Logger.warning(
             "RPC error while fetching validators",
-            block_number: block_number,
-            request: inspect(params),
-            response: Jason.encode!(response)
+            metadata: %{
+              block_number: block_number,
+              request: inspect(params),
+              response: Jason.encode!(response) # response 변수는 여전히 사용할 수 없습니다.
+            }
           )
           {:error, reason}
 
         other ->
           Logger.error(
             "Unexpected RPC response format",
-            block_number: block_number,
-            request: inspect(params),
-            response: Jason.encode!(response)
+            metadata: %{
+              block_number: block_number,
+              request: inspect(params),
+              response: inspect(other) # 예상치 못한 응답을 로깅합니다.
+            }
           )
-          {:error, {:unexpected_response, other}}
+          {:error, "Unexpected response"}
       end
     rescue
       e ->
