@@ -613,7 +613,6 @@ defmodule Explorer.Chain.Block do
         changeset
     end
   end
-end
 
   def confirmed_validator_count_changeset(%__MODULE__{} = block, attrs) do
     block
