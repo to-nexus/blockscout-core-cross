@@ -13,7 +13,6 @@ defmodule Indexer.Block.ValidatorCountFetcher do
   alias Explorer.Chain
   alias Explorer.Chain.Block
   alias Explorer.Chain.Cache.BlockNumber
-  alias Explorer.Chain.Import
   alias Indexer.{Prometheus, Tracer}
 
   @fetch_interval :timer.minutes(1)
@@ -44,7 +43,7 @@ defmodule Indexer.Block.ValidatorCountFetcher do
         process_blocks_without_validator_count(json_rpc_named_arguments)
       end)
 
-      Prometheus.Instrumenter.block_validator_count_fetch(fetch_time, __MODULE__)
+      # Prometheus.Instrumenter.block_validator_count_fetch(fetch_time, __MODULE__)
 
       case result do
         {:ok, inserted} ->

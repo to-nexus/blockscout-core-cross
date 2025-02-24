@@ -59,6 +59,10 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
           Logger.info("Successfully fetched validators for block #{block_number}, count: #{count}")
           {:ok, count}
 
+        [] ->
+          Logger.info("No validators found for block #{block_number}")
+          {:ok, 0}
+
         [%{error: reason}] = response ->
           Logger.warning(
             "RPC error while fetching validators",
