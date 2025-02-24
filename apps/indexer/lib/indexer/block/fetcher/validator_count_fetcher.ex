@@ -16,11 +16,11 @@ defmodule Indexer.Block.ValidatorCountFetcher do
   alias Explorer.Chain.Import
   alias Indexer.{Prometheus, Tracer}
 
-  @fetch_interval :timer.minutes(10)
-  @batch_size 50
-  @batch_interval_ms 1000
-  @max_concurrent_tasks 3
-  @retry_interval :timer.minutes(30)
+  @fetch_interval :timer.minutes(1)
+  @batch_size 100
+  @batch_interval_ms 200
+  @max_concurrent_tasks 5
+  @retry_interval :timer.minutes(5)
   @max_retries 3
 
   def start_link(args) do
