@@ -74,7 +74,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
             "Unexpected RPC response format",
             block_number: block_number,
             request: inspect(params),
-            response: inspect(other)
+            response: Jason.encode!(other)
           )
           {:error, {:unexpected_response, other}}
       end
