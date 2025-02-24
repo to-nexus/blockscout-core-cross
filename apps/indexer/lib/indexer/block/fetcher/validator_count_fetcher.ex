@@ -161,7 +161,7 @@ defmodule Indexer.Block.ValidatorCountFetcher do
             block_number: block.number,
             response: inspect(unexpected),
             hash: block.hash,
-            type: typeof(unexpected)
+            type: inspect(unexpected)
           )
           schedule_retry(block.number)
           nil
@@ -190,8 +190,6 @@ defmodule Indexer.Block.ValidatorCountFetcher do
   end
 
   defp import_validator_counts(%{blocks: blocks}) do
-    json_rpc_named_arguments = Application.get_env(:indexer, :json_rpc_named_arguments)
-
     # Import using Chain.import like Block.Fetcher
     Chain.import(%{
       blocks: %{params: blocks},
