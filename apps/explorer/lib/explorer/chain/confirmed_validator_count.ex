@@ -65,7 +65,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
             block_number: block_number,
             error: inspect(reason),
             request: inspect(params),
-            response: inspect(response)
+            response: Jason.encode!(response)
           )
           {:error, reason}
 
