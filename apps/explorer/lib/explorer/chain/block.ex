@@ -584,30 +584,31 @@ defmodule Explorer.Chain.Block do
   By CROSS
   Update Confirmed Validators
   """
+  @spec fetch_confirmed_validator_count(Ecto.Changeset.t()) :: Ecto.Changeset.t()
   defp fetch_confirmed_validator_count(changeset) do
-    case get_field(changeset, :number) do
-      nil ->
-        changeset
-      block_number ->
-        case Explorer.Chain.Block.ConfirmedValidatorCount.fetch_confirmed_validator_count(block_number) do
-          {:ok, count} ->
-            put_change(changeset, :confirmed_validator_count, count)
-          {:error, reason} ->
-            # warning으로 변경하고 더 자세한 에러 정보 포함
-            Logger.warning(
-              "Failed to fetch validator count for block #{block_number}",
-              error: reason,
-              block_number: block_number
-            )
-            # 일시적인 에러일 수 있으므로 nil로 설정
-            put_change(changeset, :confirmed_validator_count, nil)
-        end
+    try do
+      case get_field(changeset, :number) do
+        nil ->
+          changeset
+        block_number ->
+          case Explorer.Chain.Block.ConfirmedValidatorCount.fetch_confirmed_validator_count(block_number) do
+            {:ok, count} ->
+              put_change(changeset, :confirmed_validator_count, count)
+            {:error, reason} ->
+              Logger.warning(
+                "Failed to fetch validator count for block #{block_number}",
+                error: reason,
+                block_number: block_number
+              )
+              put_change(changeset, :confirmed_validator_count, nil)
+          end
+      end
     rescue
       e ->
         Logger.error(
           "Unexpected error while fetching validator count",
           error: e,
-          block_number: block_number,
+          block_number: get_field(changeset, :number),
           stacktrace: __STACKTRACE__
         )
         changeset
