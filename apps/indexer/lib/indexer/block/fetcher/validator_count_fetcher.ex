@@ -111,16 +111,58 @@ defmodule Indexer.Block.ValidatorCountFetcher do
   @decorate span(tracer: Tracer)
   defp process_batch(blocks, json_rpc_named_arguments) do
     Enum.map(blocks, fn block ->
-      case Chain.Block.fetch_confirmed_validator_count(block.number, json_rpc_named_arguments) do
-        {:ok, count} ->
+      # Add retry delay between requests
+      Process.sleep(50)  # Add small delay between RPC calls
+
+      result = Chain.Block.fetch_confirmed_validator_count(block.number, json_rpc_named_arguments)
+
+      case result do
+        {:ok, count} when is_integer(count) and count >= 0 ->
+          Logger.info("Successfully fetched validator count",
+            block_number: block.number,
+            count: count
+          )
           %{
             hash: block.hash,
             number: block.number,
             confirmed_validator_count: count
           }
 
+        {:ok, invalid_count} ->
+          Logger.error("Invalid validator count received",
+            block_number: block.number,
+            response: inspect(invalid_count),
+            hash: block.hash
+          )
+          schedule_retry(block.number)
+          nil
+
+        {:error, %{"code" => code, "message" => message}} ->
+          Logger.error("RPC error while fetching validator count",
+            block_number: block.number,
+            error_code: code,
+            error_message: message,
+            hash: block.hash
+          )
+          schedule_retry(block.number)
+          nil
+
         {:error, reason} ->
-          Logger.warn(fn -> ["Failed to fetch validator count for block ", to_string(block.number), ": ", inspect(reason)] end)
+          Logger.error("Error fetching validator count",
+            block_number: block.number,
+            error: inspect(reason),
+            hash: block.hash
+          )
+          schedule_retry(block.number)
+          nil
+
+        unexpected ->
+          Logger.error("Unexpected RPC response",
+            block_number: block.number,
+            response: inspect(unexpected),
+            hash: block.hash,
+            type: typeof(unexpected)
+          )
           schedule_retry(block.number)
           nil
       end

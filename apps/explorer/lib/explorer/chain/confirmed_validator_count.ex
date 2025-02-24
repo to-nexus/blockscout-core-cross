@@ -48,7 +48,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
         "id" => 1,
         "jsonrpc" => "2.0",
         "method" => "istanbul_getValidators",
-        "params" => [hex_block]  # 블록 번호를 16진수로 변환
+        "params" => [hex_block]
       }
     ]
 
@@ -56,28 +56,34 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
       case EthRPC.responses(params) do
         [%{result: validators}] when is_list(validators) ->
           count = length(validators)
-          Logger.info("Block #{block_number} validator count: #{count}")
+          Logger.info("Successfully fetched validators for block #{block_number}, count: #{count}")
           {:ok, count}
 
-        [%{error: %{code: code, message: message}}] ->  # 에러 응답 구조 수정
-          Logger.error("Failed to fetch validators",
+        [%{error: reason}] = response ->
+          Logger.warning(
+            "RPC error while fetching validators",
             block_number: block_number,
-            error_code: code,
-            error_message: message
+            error: inspect(reason),
+            request: inspect(params),
+            response: inspect(response)
           )
-          {:error, message}
+          {:error, reason}
 
         other ->
-          Logger.error("Unexpected response",
+          Logger.error(
+            "Unexpected RPC response format",
             block_number: block_number,
+            request: inspect(params),
             response: inspect(other)
           )
-          {:error, :invalid_response}
+          {:error, {:unexpected_response, other}}
       end
     rescue
       e ->
-        Logger.error("Exception while fetching validators",
+        Logger.error(
+          "Exception in fetch_confirmed_validator_count",
           block_number: block_number,
+          request: inspect(params),
           error: inspect(e),
           stacktrace: __STACKTRACE__
         )
