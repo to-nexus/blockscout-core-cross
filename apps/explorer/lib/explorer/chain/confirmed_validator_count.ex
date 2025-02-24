@@ -66,13 +66,9 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
         [%{error: reason}] = response ->
           Logger.warning(
             "RPC error while fetching validators",
-            metadata: %{
-              block_number: block_number,
-              fetcher: "block_realtime",
-              error: inspect(reason),
-              request: inspect(params),
-              response: Jason.encode!(response)
-            }
+            block_number: block_number,
+            request: inspect(params),
+            response: inspect(result)
           )
           {:error, reason}
 
