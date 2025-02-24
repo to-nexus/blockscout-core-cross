@@ -17,12 +17,6 @@ defmodule Explorer.Chain.Block.Schema do
     Withdrawal
   }
 
-  #### CROSS ADD
-  ### Confrimed_Validator_Count 관련 배치 상수 - Block 모아서 처리
-  @batch_size 50
-  @batch_interval_ms 1000
-  @max_queue_size 1000 ## Batch 메모리 제한
-
   alias Explorer.Chain.Arbitrum.BatchBlock, as: ArbitrumBatchBlock
   alias Explorer.Chain.Block.{Reward, SecondDegreeRelation}
   alias Explorer.Chain.Celo.EpochReward, as: CeloEpochReward
@@ -589,118 +583,19 @@ defmodule Explorer.Chain.Block do
   By CROSS
   Update Confirmed Validators
   """
-  ###### 배치 처리 추가
-  def start_batch_processor do
-    # 이미 실행 중인 경우 처리
-    case Agent.start_link(fn -> [] end, name: :validator_count_batch) do
-      {:ok, pid} -> {:ok, pid}
-      {:error, {:already_started, pid}} -> {:ok, pid}
-      error -> error
-    end
-  end
-
   defp fetch_confirmed_validator_count(changeset) do
     case get_field(changeset, :number) do
       nil ->
         changeset
       block_number ->
-        add_to_batch(block_number)
-        changeset
-    end
-  end
-
-  defp add_to_batch(block_number) do
-    try do
-      case Agent.get(:validator_count_batch, &length/1) do
-        size when size >= @max_queue_size ->
-          Logger.warn("Validator count batch queue is full (#{size} items)")
-          process_single_block(block_number)
-        _ ->
-          case Agent.get_and_update(:validator_count_batch, fn blocks ->
-            new_blocks = [block_number | blocks]
-            if length(new_blocks) >= @batch_size do
-              {new_blocks, []}
-            else
-              {[], new_blocks}
-            end
-          end, :timer.seconds(5)) do
-            [] -> :ok
-            blocks_to_process ->
-              Task.start(fn -> process_validator_count_batch(blocks_to_process) end)
-          end
-      end
-    rescue
-      e ->
-        Logger.error("Error in add_to_batch: #{inspect(e)}")
-        process_single_block(block_number) ### Agent 실패시 single block fallback
-    end
-  end
-
-  defp process_single_block(block_number) do
-    Task.start(fn ->
-      try do
         case Explorer.Chain.Block.ConfirmedValidatorCount.fetch_confirmed_validator_count(block_number) do
           {:ok, count} ->
-            case Repo.get_by(__MODULE__, number: block_number) do
-              nil ->
-                Logger.warn("Block #{block_number} not found for validator count update")
-              block ->
-                confirmed_validator_count_changeset(block, %{confirmed_validator_count: count})
-                |> Repo.update()
-            end
-          {:error, reason} ->
-            Logger.error("Failed to fetch validator count for block #{block_number}: #{inspect(reason)}")
+            put_change(changeset, :confirmed_validator_count, count)
+          {:error, reason} = error ->
+            Logger.warn("Failed to fetch validator count for block #{block_number}: #{inspect(reason)}")
+            # 에러 로깅 추가
+            put_change(changeset, :confirmed_validator_count, nil)
         end
-      rescue
-        e ->
-          Logger.error("Error updating validator count for block #{block_number}: #{inspect(e)}")
-      end
-    end)
-  end
-
-  defp process_validator_count_batch(block_numbers) do
-    Logger.info("Processing validator counts for #{length(block_numbers)} blocks")
-
-    try do
-      sorted_numbers = Enum.sort(block_numbers)
-
-      sorted_numbers
-      |> Enum.chunk_every(@batch_size)
-      |> Enum.each(fn chunk ->
-        results = Enum.map(chunk, fn block_number ->
-          case Explorer.Chain.Block.ConfirmedValidatorCount.fetch_confirmed_validator_count(block_number) do
-            {:ok, count} -> {block_number, {:ok, count}}
-            error -> {block_number, error}
-          end
-        end)
-
-        successful_results = Enum.filter(results, fn {_, result} -> match?({:ok, _}, result) end)
-
-        if not Enum.empty?(successful_results) do
-          Repo.transaction(fn ->
-            Enum.each(successful_results, fn {block_number, {:ok, count}} ->
-              case Repo.get_by(__MODULE__, number: block_number) do
-                nil ->
-                  Logger.warn("Block #{block_number} not found for validator count update")
-                block ->
-                  confirmed_validator_count_changeset(block, %{confirmed_validator_count: count})
-                  |> Repo.update()
-              end
-            end)
-          end, timeout: :timer.seconds(15))
-        end
-
-        failed_results = results -- successful_results
-        unless Enum.empty?(failed_results) do
-          Logger.error("Failed to update validator counts for blocks: #{inspect(failed_results)}")
-        end
-
-        Process.sleep(@batch_interval_ms)
-      end)
-    rescue
-      e ->
-        Logger.error("Error in batch processing validator counts: #{inspect(e)}")
-        Enum.each(block_numbers, &process_single_block/1)
     end
   end
 
@@ -709,21 +604,4 @@ defmodule Explorer.Chain.Block do
     |> cast(attrs, [:confirmed_validator_count])
     |> validate_number(:confirmed_validator_count, greater_than_or_equal_to: 0)
   end
-end ## End Of File
-# defp fetch_confirmed_validator_count(changeset) do
-#   case get_field(changeset, :number) do
-#     nil -> changeset
-#     block_number ->
-#       Task.start(fn ->
-#         case Explorer.Chain.Block.ConfirmedValidatorCount.fetch_confirmed_validator_count(block_number) do
-#           {:ok, count} ->
-#             # 비동기로 validator count 업데이트
-#             block = Repo.get_by(__MODULE__, number: block_number)
-#             confirmed_validator_count_changeset(block, %{confirmed_validator_count: count})
-#             |> Repo.update()
-#           _ -> :ok
-#         end
-#       end)
-#       changeset
-#   end
-# end
+end
