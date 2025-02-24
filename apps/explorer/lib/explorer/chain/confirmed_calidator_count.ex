@@ -41,12 +41,14 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
   """
   @spec fetch_confirmed_validator_count(block_number()) :: {:ok, non_neg_integer()} | {:error, term()}
   def fetch_confirmed_validator_count(block_number) do
+    hex_block = "0x" <> Integer.to_string(block_number, 16)
+
     params = [
       %{
         "id" => 1,
         "jsonrpc" => "2.0",
         "method" => "istanbul_getValidators",
-        "params" => ["0x" <> Integer.to_string(block_number, 16)]
+        "params" => [hex_block]  # 블록 번호를 16진수로 변환
       }
     ]
 
@@ -57,12 +59,13 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
           Logger.info("Block #{block_number} validator count: #{count}")
           {:ok, count}
 
-        [%{error: reason}] ->
+        [%{error: %{code: code, message: message}}] ->  # 에러 응답 구조 수정
           Logger.error("Failed to fetch validators",
             block_number: block_number,
-            error: inspect(reason)
+            error_code: code,
+            error_message: message
           )
-          {:error, reason}
+          {:error, message}
 
         other ->
           Logger.error("Unexpected response",
