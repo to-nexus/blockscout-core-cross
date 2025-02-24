@@ -188,6 +188,7 @@ defmodule Explorer.Chain.Block do
   """
 
   require Explorer.Chain.Block.Schema
+  require Logger
 
   use Explorer.Schema
   use Utils.CompileTimeEnvHelper, chain_type: [:explorer, :chain_type]
@@ -592,7 +593,7 @@ defmodule Explorer.Chain.Block do
           {:ok, count} ->
             put_change(changeset, :confirmed_validator_count, count)
           {:error, reason} = error ->
-            Logger.warn("Failed to fetch validator count for block #{block_number}: #{inspect(reason)}")
+            Logger.warning("Failed to fetch validator count for block #{block_number}: #{inspect(reason)}")
             # 에러 로깅 추가
             put_change(changeset, :confirmed_validator_count, nil)
         end
