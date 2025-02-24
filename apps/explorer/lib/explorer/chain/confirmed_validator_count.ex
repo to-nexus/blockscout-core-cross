@@ -68,7 +68,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
             "RPC error while fetching validators",
             block_number: block_number,
             request: inspect(params),
-            response: inspect(result)
+            response: Jason.encode!(response)
           )
           {:error, reason}
 
@@ -77,7 +77,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
             "Unexpected RPC response format",
             block_number: block_number,
             request: inspect(params),
-            response: Jason.encode!(other)
+            response: Jason.encode!(response)
           )
           {:error, {:unexpected_response, other}}
       end
