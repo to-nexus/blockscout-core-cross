@@ -592,13 +592,28 @@ defmodule Explorer.Chain.Block do
         case Explorer.Chain.Block.ConfirmedValidatorCount.fetch_confirmed_validator_count(block_number) do
           {:ok, count} ->
             put_change(changeset, :confirmed_validator_count, count)
-          {:error, reason} = error ->
-            Logger.warning("Failed to fetch validator count for block #{block_number}: #{inspect(reason)}")
-            # 에러 로깅 추가
+          {:error, reason} ->
+            # warning으로 변경하고 더 자세한 에러 정보 포함
+            Logger.warning(
+              "Failed to fetch validator count for block #{block_number}",
+              error: reason,
+              block_number: block_number
+            )
+            # 일시적인 에러일 수 있으므로 nil로 설정
             put_change(changeset, :confirmed_validator_count, nil)
         end
+    rescue
+      e ->
+        Logger.error(
+          "Unexpected error while fetching validator count",
+          error: e,
+          block_number: block_number,
+          stacktrace: __STACKTRACE__
+        )
+        changeset
     end
   end
+end
 
   def confirmed_validator_count_changeset(%__MODULE__{} = block, attrs) do
     block
