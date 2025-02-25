@@ -6,6 +6,7 @@ defmodule Explorer.EthRPC do
 
   alias Ecto.Type, as: EctoType
   alias Explorer.{BloomFilter, Chain, Helper, Repo}
+  alias Logger
 
   alias Explorer.Chain.{
     Block,
@@ -20,6 +21,8 @@ defmodule Explorer.EthRPC do
 
   alias Explorer.Chain.Cache.{BlockNumber, GasPriceOracle}
   alias Explorer.Etherscan.{Blocks, Logs}
+
+  require Logger
 
   @nil_gas_price_message "Gas price is not estimated yet"
 
@@ -687,6 +690,10 @@ defmodule Explorer.EthRPC do
 
   @spec responses([map()]) :: [map()]
   def responses(requests) do
+    # 함수 호출 시 로깅 추가
+    IO.puts("DEBUG: EthRPC.responses 호출 전 params: #{inspect(requests)}")
+    Logger.info("EthRPC.responses 호출 전 params: #{inspect(requests)}")
+
     requests =
       requests
       |> Enum.with_index()
@@ -707,6 +714,10 @@ defmodule Explorer.EthRPC do
       end)
       |> json_rpc()
 
+    # 함수 호출 시 로깅 추가
+    IO.puts("DEBUG: proxy_requests 처리 결과: #{inspect(proxy_requests)}")
+    Logger.info("proxy_requests 처리 결과: #{inspect(proxy_requests)}")
+
     Enum.map(requests, fn {request, index} ->
       with {:proxy, nil} <- {:proxy, proxy_requests[index]},
            {:id, {:ok, id}} <- {:id, Map.fetch(request, "id")},
@@ -720,6 +731,12 @@ defmodule Explorer.EthRPC do
         {:proxy, %{error: error}} -> format_error(error, Map.get(request, "id"))
       end
     end)
+
+    # 함수 호출 시 로깅 추가
+    IO.puts("DEBUG: EthRPC.responses 최종 결과: #{inspect(result)}")
+    Logger.info("EthRPC.responses 최종 결과: #{inspect(result)}")
+
+    result
   end
 
   defp proxy_method?(%{"jsonrpc" => "2.0", "method" => method, "params" => params, "id" => id})
