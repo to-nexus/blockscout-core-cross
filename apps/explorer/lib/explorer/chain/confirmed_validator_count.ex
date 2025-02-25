@@ -52,6 +52,8 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
       }
     ]
 
+    Logger.info("call fetch confrimed validator cout  params: #{params}")
+
     try do
       case EthRPC.responses(params) do
         [%{result: validators}] when is_list(validators) ->
@@ -69,7 +71,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
             metadata: %{
               block_number: block_number,
               request: inspect(params),
-              response: Jason.encode!(response) # response 변수는 여전히 사용할 수 없습니다.
+              response: Jason.encode!(response)
             }
           )
           {:error, reason}
@@ -80,7 +82,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
             metadata: %{
               block_number: block_number,
               request: inspect(params),
-              response: inspect(other) # 예상치 못한 응답을 로깅합니다.
+              response: inspect(other)
             }
           )
           {:error, "Unexpected response"}
