@@ -714,11 +714,11 @@ defmodule Explorer.EthRPC do
       end)
       |> json_rpc()
 
-    # 함수 호출 시 로깅 추가
+    # proxy_requests 결과 로깅
     IO.puts("DEBUG: proxy_requests 처리 결과: #{inspect(proxy_requests)}")
     Logger.info("proxy_requests 처리 결과: #{inspect(proxy_requests)}")
 
-    Enum.map(requests, fn {request, index} ->
+    result = Enum.map(requests, fn {request, index} ->
       with {:proxy, nil} <- {:proxy, proxy_requests[index]},
            {:id, {:ok, id}} <- {:id, Map.fetch(request, "id")},
            {:request, {:ok, result}} <- {:request, do_eth_request(request)} do

@@ -61,10 +61,6 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
     IO.puts("DEBUG: params #{params}")
     Logger.info("params #{params}")
 
-    response = EthRPC.responses(params)
-    Logger.info("EthRPC.responses result: #{inspect(response)}")
-    IO.puts("DEBUG: EthRPC.responses #{inspect(response)}")
-
     try do
       case EthRPC.responses(params) do
         [%{result: validators}] when is_list(validators) ->
