@@ -11,6 +11,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
   alias Explorer.Chain.Block
   alias Explorer.Repo
   alias Explorer.EthRPC
+  alias Logger
   import Ecto.Query
   require Logger
 
@@ -41,6 +42,9 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
   """
   @spec fetch_confirmed_validator_count(block_number()) :: {:ok, non_neg_integer()} | {:error, term()}
   def fetch_confirmed_validator_count(block_number) do
+    IO.puts("DEBUG: Fetching validator count for block #{block_number}")
+    Logger.info("Fetching validator count for block #{block_number}")
+
     hex_block = "0x" <> Integer.to_string(block_number, 16)
 
     params = [
