@@ -46,6 +46,8 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
     Logger.info("Fetching validator count for block #{block_number}")
 
     hex_block = "0x" <> Integer.to_string(block_number, 16)
+    IO.puts("DEBUG: hex_block #{hex_block}")
+    Logger.info("hex_block #{hex_block}")
 
     params = [
       %{
