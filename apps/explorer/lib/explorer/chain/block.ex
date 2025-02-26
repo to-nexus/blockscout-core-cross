@@ -24,6 +24,8 @@ defmodule Explorer.Chain.Block.Schema do
   alias Explorer.Chain.Zilliqa.AggregateQuorumCertificate, as: ZilliqaAggregateQuorumCertificate
   alias Explorer.Chain.Zilliqa.QuorumCertificate, as: ZilliqaQuorumCertificate
   alias Explorer.Chain.ZkSync.BatchBlock, as: ZkSyncBatchBlock
+  alias Explorer.Repo
+  alias Logger
 
   @chain_type_fields (case @chain_type do
                         :ethereum ->
@@ -149,6 +151,7 @@ defmodule Explorer.Chain.Block.Schema do
         field(:refetch_needed, :boolean)
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
+        field(:confirmed_validator_count, :integer)  ## CROSS ADD
 
         timestamps()
 
@@ -185,6 +188,7 @@ defmodule Explorer.Chain.Block do
   """
 
   require Explorer.Chain.Block.Schema
+  require Logger
 
   use Explorer.Schema
   use Utils.CompileTimeEnvHelper, chain_type: [:explorer, :chain_type]
@@ -194,7 +198,7 @@ defmodule Explorer.Chain.Block do
   alias Explorer.Repo
   alias Explorer.Utility.MissingRangesManipulator
 
-  @optional_attrs ~w(size refetch_needed total_difficulty difficulty base_fee_per_gas)a
+  @optional_attrs ~w(size refetch_needed total_difficulty difficulty base_fee_per_gas confirmed_validator_count)a
 
   @chain_type_optional_attrs (case @chain_type do
                                 :rsk ->
@@ -272,6 +276,7 @@ defmodule Explorer.Chain.Block do
     |> validate_required(@required_attrs)
     |> foreign_key_constraint(:parent_hash)
     |> unique_constraint(:hash, name: :blocks_pkey)
+    |> fetch_confirmed_validator_count()
   end
 
   def number_only_changeset(%__MODULE__{} = block, attrs) do
@@ -565,8 +570,54 @@ defmodule Explorer.Chain.Block do
         set: [refetch_needed: true, updated_at: Timex.now()]
       )
 
+    ## Update validator counts in re-fetch
+    Task.start(fn ->
+      Explorer.Chain.Block.ConfirmedValidatorCount.update_confirmed_validator_counts(updated_numbers)
+    end)
+
     MissingRangesManipulator.add_ranges_by_block_numbers(updated_numbers)
   end
 
   def set_refetch_needed(block_number), do: set_refetch_needed([block_number])
+
+  @doc """
+  By CROSS
+  Update Confirmed Validators
+  """
+  @spec fetch_confirmed_validator_count(Ecto.Changeset.t()) :: Ecto.Changeset.t()
+  defp fetch_confirmed_validator_count(changeset) do
+    try do
+      case get_field(changeset, :number) do
+        nil ->
+          changeset
+        block_number ->
+          case Explorer.Chain.Block.ConfirmedValidatorCount.fetch_confirmed_validator_count(block_number) do
+            {:ok, count} ->
+              put_change(changeset, :confirmed_validator_count, count)
+            {:error, reason} ->
+              Logger.warning(
+                "Failed to fetch validator count for block #{block_number}",
+                error: reason,
+                block_number: block_number
+              )
+              put_change(changeset, :confirmed_validator_count, nil)
+          end
+      end
+    rescue
+      e ->
+        Logger.error(
+          "Unexpected error while fetching validator count",
+          error: e,
+          block_number: get_field(changeset, :number),
+          stacktrace: __STACKTRACE__
+        )
+        changeset
+    end
+  end
+
+  def confirmed_validator_count_changeset(%__MODULE__{} = block, attrs) do
+    block
+    |> cast(attrs, [:confirmed_validator_count])
+    |> validate_number(:confirmed_validator_count, greater_than_or_equal_to: 0)
+  end
 end

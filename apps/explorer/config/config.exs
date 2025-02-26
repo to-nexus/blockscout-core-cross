@@ -172,6 +172,10 @@ config :logger, :explorer,
        block_number step count error_count shrunk import_id transaction_id)a,
   metadata_filter: [application: :explorer]
 
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  level: :debug
+
 config :spandex_ecto, SpandexEcto.EctoLogger,
   service: :ecto,
   tracer: Explorer.Tracer,

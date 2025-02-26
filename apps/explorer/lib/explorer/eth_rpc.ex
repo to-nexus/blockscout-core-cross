@@ -6,6 +6,7 @@ defmodule Explorer.EthRPC do
 
   alias Ecto.Type, as: EctoType
   alias Explorer.{BloomFilter, Chain, Helper, Repo}
+  alias Logger
 
   alias Explorer.Chain.{
     Block,
@@ -20,6 +21,8 @@ defmodule Explorer.EthRPC do
 
   alias Explorer.Chain.Cache.{BlockNumber, GasPriceOracle}
   alias Explorer.Etherscan.{Blocks, Logs}
+
+  require Logger
 
   @nil_gas_price_message "Gas price is not estimated yet"
 
@@ -243,6 +246,34 @@ defmodule Explorer.EthRPC do
       }
       """
     }
+    # "istanbul_getValidators" => %{
+    #   action: :istanbul_get_validators,
+    #   notes: """
+    #   Returns the list of validators for the specified block.
+    #   """,
+    #   example: """
+    #   {"jsonrpc": "2.0","id": 1,"method": "istanbul_getValidators","params": ["0x1234"]}
+    #   """,
+    #   params: [
+    #     %{
+    #       name: "Block",
+    #       description: "Integer block number in hexadecimal format",
+    #       type: "string",
+    #       default: nil,
+    #       required: true
+    #     }
+    #   ],
+    #   result: """
+    #   {
+    #     "jsonrpc": "2.0",
+    #     "id": 0,
+    #     "result": [
+    #       "0x42eb768f2244c8811c63729a21a3569731535f06",
+    #       "0x7d8bf18c7ce84b3e175b339c4ca93aed1dd166f1"
+    #     ]
+    #   }
+    #   """
+    # }
   }
 
   @proxy_methods %{
@@ -645,6 +676,23 @@ defmodule Explorer.EthRPC do
         "id": 0
       }
       """
+    },
+    "istanbul_getValidators" => %{
+      arity: 1,
+      params_validators: [&block_validator/1],
+      example: """
+      {"jsonrpc": "2.0","id": 1,"method": "istanbul_getValidators","params": ["0x1234"]}
+      """,
+      result: """
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": [
+          "0x42eb768f2244c8811c63729a21a3569731535f06",
+          "0x7d8bf18c7ce84b3e175b339c4ca93aed1dd166f1"
+        ]
+      }
+      """
     }
   }
 
@@ -679,7 +727,7 @@ defmodule Explorer.EthRPC do
       end)
       |> json_rpc()
 
-    Enum.map(requests, fn {request, index} ->
+    result = Enum.map(requests, fn {request, index} ->
       with {:proxy, nil} <- {:proxy, proxy_requests[index]},
            {:id, {:ok, id}} <- {:id, Map.fetch(request, "id")},
            {:request, {:ok, result}} <- {:request, do_eth_request(request)} do
@@ -692,6 +740,7 @@ defmodule Explorer.EthRPC do
         {:proxy, %{error: error}} -> format_error(error, Map.get(request, "id"))
       end
     end)
+    result
   end
 
   defp proxy_method?(%{"jsonrpc" => "2.0", "method" => method, "params" => params, "id" => id})
@@ -832,6 +881,24 @@ defmodule Explorer.EthRPC do
         {:error, @nil_gas_price_message}
     end
   end
+
+  # @doc """
+  # By CROSS
+  # Handles `istanbul_getValidators` method
+  # """
+  # @spec istanbul_get_validators(map()) :: {:ok, list()} | {:error, term()}
+  # def istanbul_get_validators(%{"params" => params} = request) do
+  #   case responses([request]) do
+  #     [%{result: validators}] when is_list(validators) ->
+  #       {:ok, validators}
+  #     [%{error: reason}] ->
+  #       Logger.error("Error fetching validators: #{inspect(reason)}")
+  #       {:error, reason}
+  #     _ ->
+  #       Logger.error("Unexpected response fetching validators")
+  #       {:error, "Unexpected response"}
+  #   end
+  # end
 
   @doc """
   Handles `eth_chainId` method
@@ -1215,6 +1282,10 @@ defmodule Explorer.EthRPC do
   defp get_action(action) do
     case Map.get(@methods, action) do
       %{action: action} ->
+        if action == :istanbul_get_validators do
+          # IO.puts("DEBUG: get_action called with istanbul_getValidators")
+          Logger.info("get_action called with istanbul_getValidators")
+        end
         {:ok, action}
 
       _ ->
