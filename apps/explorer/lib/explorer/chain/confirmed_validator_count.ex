@@ -42,12 +42,7 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
   """
   @spec fetch_confirmed_validator_count(block_number()) :: {:ok, non_neg_integer()} | {:error, term()}
   def fetch_confirmed_validator_count(block_number) do
-    IO.puts("DEBUG: Fetching validator count for block #{block_number}")
-    Logger.info("Fetching validator count for block #{block_number}")
-
     hex_block = "0x" <> Integer.to_string(block_number, 16)
-    IO.puts("DEBUG: hex_block #{hex_block}")
-    Logger.info("hex_block #{hex_block}")
 
     params = [
       %{
@@ -57,20 +52,6 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
         "params" => [hex_block]
       }
     ]
-
-    # 수정된 부분: inspect 함수를 사용해 복잡한 데이터 구조를 문자열로 변환
-    IO.puts("DEBUG: params #{inspect(params)}")
-    Logger.info("params #{inspect(params)}")
-
-    try do
-      IO.puts("함수 호출 직전")
-      result = EthRPC.responses(params)
-      IO.puts("함수 호출 직후: #{inspect(result)}")
-    rescue
-       e ->
-        IO.puts("에러 발생: #{inspect(e)}")
-        reraise e, __STACKTRACE__
-    end
 
     try do
       case EthRPC.responses(params) do

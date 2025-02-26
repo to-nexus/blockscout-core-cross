@@ -245,35 +245,35 @@ defmodule Explorer.EthRPC do
         "result": "0x3b9aca00"
       }
       """
-    },
-    "istanbul_getValidators" => %{
-      action: :istanbul_get_validators,
-      notes: """
-      Returns the list of validators for the specified block.
-      """,
-      example: """
-      {"jsonrpc": "2.0","id": 1,"method": "istanbul_getValidators","params": ["0x1234"]}
-      """,
-      params: [
-        %{
-          name: "Block",
-          description: "Integer block number in hexadecimal format",
-          type: "string",
-          default: nil,
-          required: true
-        }
-      ],
-      result: """
-      {
-        "jsonrpc": "2.0",
-        "id": 0,
-        "result": [
-          "0x42eb768f2244c8811c63729a21a3569731535f06",
-          "0x7d8bf18c7ce84b3e175b339c4ca93aed1dd166f1"
-        ]
-      }
-      """
     }
+    # "istanbul_getValidators" => %{
+    #   action: :istanbul_get_validators,
+    #   notes: """
+    #   Returns the list of validators for the specified block.
+    #   """,
+    #   example: """
+    #   {"jsonrpc": "2.0","id": 1,"method": "istanbul_getValidators","params": ["0x1234"]}
+    #   """,
+    #   params: [
+    #     %{
+    #       name: "Block",
+    #       description: "Integer block number in hexadecimal format",
+    #       type: "string",
+    #       default: nil,
+    #       required: true
+    #     }
+    #   ],
+    #   result: """
+    #   {
+    #     "jsonrpc": "2.0",
+    #     "id": 0,
+    #     "result": [
+    #       "0x42eb768f2244c8811c63729a21a3569731535f06",
+    #       "0x7d8bf18c7ce84b3e175b339c4ca93aed1dd166f1"
+    #     ]
+    #   }
+    #   """
+    # }
   }
 
   @proxy_methods %{
@@ -707,10 +707,6 @@ defmodule Explorer.EthRPC do
 
   @spec responses([map()]) :: [map()]
   def responses(requests) do
-    # 함수 호출 시 로깅 추가
-    IO.puts("DEBUG: EthRPC.responses 호출 전 params: #{inspect(requests)}")
-    Logger.info("EthRPC.responses 호출 전 params: #{inspect(requests)}")
-
     requests =
       requests
       |> Enum.with_index()
@@ -731,10 +727,6 @@ defmodule Explorer.EthRPC do
       end)
       |> json_rpc()
 
-    # proxy_requests 결과 로깅
-    IO.puts("DEBUG: proxy_requests 처리 결과: #{inspect(proxy_requests)}")
-    Logger.info("proxy_requests 처리 결과: #{inspect(proxy_requests)}")
-
     result = Enum.map(requests, fn {request, index} ->
       with {:proxy, nil} <- {:proxy, proxy_requests[index]},
            {:id, {:ok, id}} <- {:id, Map.fetch(request, "id")},
@@ -748,11 +740,6 @@ defmodule Explorer.EthRPC do
         {:proxy, %{error: error}} -> format_error(error, Map.get(request, "id"))
       end
     end)
-
-    # 함수 호출 시 로깅 추가
-    IO.puts("DEBUG: EthRPC.responses 최종 결과: #{inspect(result)}")
-    Logger.info("EthRPC.responses 최종 결과: #{inspect(result)}")
-
     result
   end
 
@@ -895,23 +882,23 @@ defmodule Explorer.EthRPC do
     end
   end
 
-  @doc """
-  By CROSS
-  Handles `istanbul_getValidators` method
-  """
-  @spec istanbul_get_validators(map()) :: {:ok, list()} | {:error, term()}
-  def istanbul_get_validators(%{"params" => params} = request) do
-    case responses([request]) do
-      [%{result: validators}] when is_list(validators) ->
-        {:ok, validators}
-      [%{error: reason}] ->
-        Logger.error("Error fetching validators: #{inspect(reason)}")
-        {:error, reason}
-      _ ->
-        Logger.error("Unexpected response fetching validators")
-        {:error, "Unexpected response"}
-    end
-  end
+  # @doc """
+  # By CROSS
+  # Handles `istanbul_getValidators` method
+  # """
+  # @spec istanbul_get_validators(map()) :: {:ok, list()} | {:error, term()}
+  # def istanbul_get_validators(%{"params" => params} = request) do
+  #   case responses([request]) do
+  #     [%{result: validators}] when is_list(validators) ->
+  #       {:ok, validators}
+  #     [%{error: reason}] ->
+  #       Logger.error("Error fetching validators: #{inspect(reason)}")
+  #       {:error, reason}
+  #     _ ->
+  #       Logger.error("Unexpected response fetching validators")
+  #       {:error, "Unexpected response"}
+  #   end
+  # end
 
   @doc """
   Handles `eth_chainId` method
@@ -1296,7 +1283,7 @@ defmodule Explorer.EthRPC do
     case Map.get(@methods, action) do
       %{action: action} ->
         if action == :istanbul_get_validators do
-          IO.puts("DEBUG: get_action called with istanbul_getValidators")
+          # IO.puts("DEBUG: get_action called with istanbul_getValidators")
           Logger.info("get_action called with istanbul_getValidators")
         end
         {:ok, action}
