@@ -58,13 +58,19 @@ defmodule Explorer.Chain.Block.ConfirmedValidatorCount do
       }
     ]
 
-    IO.puts("DEBUG: params #{params}")
-    Logger.info("params #{params}")
+    # 수정된 부분: inspect 함수를 사용해 복잡한 데이터 구조를 문자열로 변환
+    IO.puts("DEBUG: params #{inspect(params)}")
+    Logger.info("params #{inspect(params)}")
 
-    result = EthRPC.responses(params)
-
-    IO.puts("DEBUG: result #{result}")
-    Logger.info("result #{result}")
+    try do
+      IO.puts("함수 호출 직전")
+      result = EthRPC.responses(params)
+      IO.puts("함수 호출 직후: #{inspect(result)}")
+    rescue
+       e ->
+        IO.puts("에러 발생: #{inspect(e)}")
+        reraise e, __STACKTRACE__
+    end
 
     try do
       case EthRPC.responses(params) do
