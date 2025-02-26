@@ -252,7 +252,7 @@ defmodule Explorer.EthRPC do
       Returns the list of validators for the specified block.
       """,
       example: """
-      {"jsonrpc": "2.0","id": 0,"method": "istanbul_getValidators","params": ["0x1234"]}
+      {"jsonrpc": "2.0","id": 1,"method": "istanbul_getValidators","params": ["0x1234"]}
       """,
       params: [
         %{
@@ -878,6 +878,21 @@ defmodule Explorer.EthRPC do
     end
   end
 
+  @doc """
+  By CROSS
+  Handles `istanbul_getValidators` method
+  """
+  def istanbul_get_validators(%{"params" => params} = request) do
+    case responses([request]) do
+      [%{result: validators}] -> {:ok, validators}
+      [%{error: reason}] ->
+        Logger.error("Error fetching validators: #{inspect(reason)}")
+        {:error, reason}
+      _ ->
+        Logger.error("Unexpected response fetching validators")
+        {:error, "Unexpected response"}
+    end
+  end
   @doc """
   Handles `eth_chainId` method
   """
