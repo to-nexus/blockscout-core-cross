@@ -882,9 +882,11 @@ defmodule Explorer.EthRPC do
   By CROSS
   Handles `istanbul_getValidators` method
   """
+  @spec istanbul_get_validators(map()) :: {:ok, list()} | {:error, term()}
   def istanbul_get_validators(%{"params" => params} = request) do
     case responses([request]) do
-      [%{result: validators}] -> {:ok, validators}
+      [%{result: validators}] when is_list(validators) ->
+        {:ok, validators}
       [%{error: reason}] ->
         Logger.error("Error fetching validators: #{inspect(reason)}")
         {:error, reason}
@@ -893,6 +895,7 @@ defmodule Explorer.EthRPC do
         {:error, "Unexpected response"}
     end
   end
+
   @doc """
   Handles `eth_chainId` method
   """
