@@ -676,6 +676,23 @@ defmodule Explorer.EthRPC do
         "id": 0
       }
       """
+    },
+    "istanbul_getValidators" => %{
+      arity: 1,
+      params_validators: [&block_validator/1],
+      example: """
+      {"jsonrpc": "2.0","id": 1,"method": "istanbul_getValidators","params": ["0x1234"]}
+      """,
+      result: """
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": [
+          "0x42eb768f2244c8811c63729a21a3569731535f06",
+          "0x7d8bf18c7ce84b3e175b339c4ca93aed1dd166f1"
+        ]
+      }
+      """
     }
   }
 
@@ -1278,6 +1295,10 @@ defmodule Explorer.EthRPC do
   defp get_action(action) do
     case Map.get(@methods, action) do
       %{action: action} ->
+        if action == :istanbul_get_validators do
+          IO.puts("DEBUG: get_action called with istanbul_getValidators")
+          Logger.info("get_action called with istanbul_getValidators")
+        end
         {:ok, action}
 
       _ ->
