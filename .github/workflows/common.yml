@@ -50,7 +50,7 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-api:${{ steps.tagging.outputs.GIT_SHA }},${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-api:latest
+          tags: ${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-api:${{ steps.tagging.outputs.GIT_SHA }},${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-api:latest
           platforms: linux/amd64
           build-args: |
             DISABLE_INDEXER=true
@@ -66,7 +66,7 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}:${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-indexer:${{ steps.tagging.outputs.GIT_SHA }},${{ env.ECR_REGISTRY }}/${{ secrets.AWS_ECR_REPO }}${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-indexer:latest
+          tags: ${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-indexer:${{ steps.tagging.outputs.GIT_SHA }},${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-indexer:latest
           platforms: linux/amd64
           build-args: |
             DISABLE_API=true 
