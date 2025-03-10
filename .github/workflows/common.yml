@@ -22,10 +22,11 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Tagging
-        id: tagging
+      - name: Get Env Name
+        id: env
         run: |
           echo "GIT_TAG=$(echo $TAG_FULL | cut -d'-' -f1)" >> $GITHUB_OUTPUT
+          echo $GIT_TAG
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -50,7 +51,7 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-api:${{ steps.tagging.outputs.GIT_TAG }},${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-api:latest
+          tags: ${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-api:${{ steps.env.outputs.GIT_TAG }},${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-api:latest
           platforms: linux/amd64
           build-args: |
             DISABLE_INDEXER=true
@@ -66,7 +67,7 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: ${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-indexer:${{ steps.tagging.outputs.GIT_TAG }},${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-indexer:latest
+          tags: ${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-indexer:${{ steps.env.outputs.GIT_TAG }},${{ env.ECR_REGISTRY }}/${{ inputs.environment }}/${{ secrets.AWS_ECR_REPO }}-indexer:latest
           platforms: linux/amd64
           build-args: |
             DISABLE_API=true 
