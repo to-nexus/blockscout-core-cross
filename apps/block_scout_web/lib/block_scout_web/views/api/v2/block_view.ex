@@ -40,6 +40,7 @@ defmodule BlockScoutWeb.API.V2.BlockView do
       "transaction_count" => count_transactions(block),
       "miner" => Helper.address_with_info(nil, block.miner, block.miner_hash, false),
       "confirmed_validator_count" => block.confirmed_validator_count,
+      "extra_data" => block.extra_data,
       "size" => block.size,
       "hash" => block.hash,
       "parent_hash" => block.parent_hash,

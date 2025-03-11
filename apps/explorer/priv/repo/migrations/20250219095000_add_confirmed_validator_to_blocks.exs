@@ -4,6 +4,7 @@ defmodule Explorer.Repo.Migrations.AddValidatorCountToBlocks do
   def change do
     alter table(:blocks) do
       add :confirmed_validator_count, :integer
+      add :extra_data, :binary
     end
 
     # Optional: Add an index if you plan to query by validator_count

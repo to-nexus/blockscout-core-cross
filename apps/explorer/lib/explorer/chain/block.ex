@@ -152,6 +152,7 @@ defmodule Explorer.Chain.Block.Schema do
         field(:base_fee_per_gas, Wei)
         field(:is_empty, :boolean)
         field(:confirmed_validator_count, :integer)  ## CROSS ADD
+        field(:extra_data, :binary) ## CROSS ADD
 
         timestamps()
 
