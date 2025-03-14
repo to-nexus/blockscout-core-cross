@@ -1256,3 +1256,10 @@ Code.require_file("#{config_env()}.exs", "config/runtime")
 for config <- "../apps/*/config/runtime/#{config_env()}.exs" |> Path.expand(__DIR__) |> Path.wildcard() do
   Code.require_file("#{config_env()}.exs", Path.dirname(config))
 end
+
+# CORS 설정
+config :block_scout_web, :cors,
+  allow_headers: System.get_env("CORS_ALLOW_HEADERS", "content-type,x-requested-with,origin,accept") |> String.split(","),
+  allow_methods: System.get_env("CORS_ALLOW_METHODS", "get,post,put,patch,delete,options") |> String.split(","),
+  allow_origin: System.get_env("CORS_ALLOW_ORIGIN", "*") |> String.split(","),
+  max_age: System.get_env("CORS_MAX_AGE", "86400") |> String.to_integer()

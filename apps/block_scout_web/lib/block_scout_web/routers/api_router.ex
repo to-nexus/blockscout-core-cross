@@ -34,7 +34,12 @@ defmodule BlockScoutWeb.Routers.ApiRouter do
   }
 
   alias BlockScoutWeb.Plug.{CheckApiV2, RateLimit}
+  # CORSPlug는 외부 라이브러리
+  alias CORSPlug
   alias BlockScoutWeb.Routers.AccountRouter
+
+  # CORS 설정을 모듈 변수로 정의
+  @cors_config Application.compile_env(:block_scout_web, :cors, [])
 
   @max_query_string_length 5_000
 
@@ -57,6 +62,7 @@ defmodule BlockScoutWeb.Routers.ApiRouter do
 
     plug(BlockScoutWeb.Plug.Logger, application: :api)
     plug(:accepts, ["json"])
+    plug(CORSPlug, @cors_config)
   end
 
   pipeline :api_v2 do
@@ -74,6 +80,7 @@ defmodule BlockScoutWeb.Routers.ApiRouter do
     plug(:fetch_session)
     plug(:protect_from_forgery)
     plug(RateLimit)
+    plug(CORSPlug, @cors_config)
   end
 
   pipeline :api_v2_no_session do
@@ -89,6 +96,7 @@ defmodule BlockScoutWeb.Routers.ApiRouter do
     plug(:accepts, ["json"])
     plug(CheckApiV2)
     plug(RateLimit)
+    plug(CORSPlug, @cors_config)
   end
 
   pipeline :api_v1_graphql do
@@ -102,6 +110,7 @@ defmodule BlockScoutWeb.Routers.ApiRouter do
     plug(BlockScoutWeb.Plug.Logger, application: :api)
     plug(:accepts, ["json"])
     plug(RateLimit, graphql?: true)
+    plug(CORSPlug, @cors_config)
   end
 
   alias BlockScoutWeb.API.V2
